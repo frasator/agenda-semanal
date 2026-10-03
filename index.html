@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="es" data-paper="A4">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agenda semanal imprimible</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style id="paper-style">@page { size: A4 portrait; margin: 5mm; }</style>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Roboto", Arial, Helvetica, sans-serif;
+      color: #202020;
+      --sheet-height: 287mm;
+      --sheet-ratio: 200 / 287;
+      --preview-sheet-width: 100%;
+      --ink: #202020;
+      --muted: #777;
+      --line: #ccc;
+      --accent: #333;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #fff1d6 0%, #e4f7ee 48%, #e9edff 100%);
+    }
+
+    .workspace {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      width: 100%;
+      padding: 0.5rem;
+      color: var(--ink);
+    }
+
+    .controls label { font-weight: 700; }
+
+    .controls select,
+    .controls input,
+    .controls button {
+      min-height: 2.5rem;
+      padding: 0.45rem 0.8rem;
+      border: 1px solid #aeb8c6;
+      border-radius: 0.35rem;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+    }
+
+    .controls input { width: 10.5rem; }
+
+    .week-navigation {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .controls .week-navigation button {
+      min-width: 0;
+      display: grid;
+      place-items: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      padding: 0.45rem;
+    }
+
+    .week-navigation svg {
+      width: 1.2rem;
+      height: 1.2rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 2.25;
+    }
+
+    .controls button {
+      border-color: #315fb8;
+      background: #477bd1;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .controls button:hover { background: #3569bf; }
+
+    .print-help,
+    .storage-notice {
+      width: 100%;
+      margin: 0;
+      color: #333;
+      font-size: 0.875rem;
+      text-align: center;
+    }
+
+    .print-help a { color: #244f9e; font-weight: 700; }
+
+    .sheet {
+      display: flex;
+      flex-direction: column;
+      width: var(--preview-sheet-width);
+      height: auto;
+      aspect-ratio: var(--sheet-ratio);
+      padding: 4mm 7mm;
+      background: #fff;
+      box-shadow: 0 2px 12px #18233220;
+      break-after: page;
+      page-break-after: always;
+    }
+
+    .sheet.left-page { padding-right: 16mm; }
+    .sheet.right-page { padding-left: 16mm; }
+
+    .sheet:last-child {
+      break-after: auto;
+      page-break-after: auto;
+    }
+
+    #agenda {
+      display: grid;
+      grid-template-columns: repeat(2, var(--preview-sheet-width));
+      align-items: start;
+      gap: 5px;
+      width: max-content;
+      max-width: 100%;
+      justify-self: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    #agenda .sheet { flex: none; }
+
+    .schedule {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .day-panel {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      flex: 1 1 0;
+      min-height: 0;
+    }
+
+    .day-panel + .day-panel { padding-top: 2mm; }
+
+    .day-content {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      flex: 1 1 auto;
+      min-height: 0;
+      margin-top: 2mm;
+      margin-bottom: 1mm;
+    }
+
+    .period-column {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .column-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex: 0 0 6mm;
+      min-height: 6mm;
+      padding: 0 1mm;
+      font-size: 10pt;
+      font-weight: 600;
+    }
+
+    .day-heading-left {
+      display: flex;
+      align-items: baseline;
+      gap: 1.3mm;
+      font-family: "Lora", Georgia, serif;
+      font-size: 13.5pt;
+      font-weight: 500;
+      font-style: italic;
+      letter-spacing: 0.01em;
+    }
+
+    .day-heading-left {
+      transform: scale(1.2);
+      transform-origin: left center;
+    }
+
+    .day-number {
+      color: var(--ink);
+      font-family: "Roboto", Arial, sans-serif;
+      font-size: 13.5pt;
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    .day-month {
+      font-family: "Roboto", Arial, sans-serif;
+      font-size: 10pt;
+      font-weight: 500;
+      font-style: normal;
+      text-transform: capitalize;
+    }
+
+    .day-year {
+      color: var(--muted);
+      font-family: "Roboto", Arial, sans-serif;
+      font-size: 7.7pt;
+      font-weight: 400;
+      font-style: italic;
+      opacity: 0.7;
+    }
+
+    .slots {
+      display: grid;
+      grid-template-rows: repeat(14, minmax(0, 1fr));
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .slots > div {
+      position: relative;
+      border-top: 0.45pt dotted var(--line);
+    }
+    .period-column .slots > div:first-child { border-top: 0; }
+    .time-label {
+      position: absolute;
+      top: 0.4mm;
+      left: 1mm;
+      color: #999;
+      font-family: "Roboto", Arial, sans-serif;
+      font-size: 6.5pt;
+      font-weight: 400;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .weekend-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      flex: 1 1 auto;
+      min-height: 0;
+      column-gap: 0;
+    }
+    .weekend-day {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+    }
+    .day-panel[aria-label="Sábado / Domingo"] {
+      position: relative;
+      isolation: isolate;
+    }
+    .day-panel[aria-label="Sábado / Domingo"]::before {
+      position: absolute;
+      z-index: -1;
+      top: 0;
+      right: -7mm;
+      bottom: -4mm;
+      left: -16mm;
+      background: #f3f3f3;
+      content: "";
+    }
+    .weekend-day .column-heading { flex-basis: 5mm; min-height: 5mm; font-size: 8pt; }
+    .weekend-day .day-heading-left {
+      transform: none;
+      font-size: 13pt;
+      letter-spacing: 0;
+    }
+    .weekend-day .day-number { font-size: 13pt; }
+    .weekend-day .day-month { font-size: 10pt; }
+    .weekend-day .day-year { font-size: 8pt; }
+    .weekend-day .slots { padding: 0 0.5mm; }
+    @media print {
+      body { background: #fff; }
+      .workspace {
+        display: block;
+        min-height: 0;
+        padding: 0;
+      }
+      .controls { display: none; }
+      #agenda {
+        display: block;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+      }
+      .sheet {
+        width: 100%;
+        height: var(--sheet-height);
+        aspect-ratio: auto;
+        margin: 0;
+        box-shadow: none;
+        break-after: page;
+        page-break-after: always;
+      }
+      .sheet:last-child {
+        break-after: auto;
+        page-break-after: auto;
+      }
+      .time-label { font-size: 6pt; }
+    }
+  </style>
+</head>
+<body>
+  <div class="workspace">
+    <div class="controls">
+      <label for="paper-size">Formato de papel</label>
+      <select id="paper-size">
+        <option value="A4">A4</option>
+        <option value="A5">A5</option>
+        <option value="A6">A6</option>
+      </select>
+      <label for="week-picker">Fecha de la semana</label>
+      <input id="week-picker" type="date" aria-label="Elegir una fecha de la semana">
+      <div class="week-navigation" aria-label="Navegación entre semanas">
+        <button type="button" id="previous-week" aria-label="Ir a la semana anterior" title="Semana anterior">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7"/></svg>
+        </button>
+        <button type="button" id="next-week" aria-label="Ir a la semana siguiente" title="Semana siguiente">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 5 7 7-7 7"/></svg>
+        </button>
+      </div>
+      <button type="button" id="current-week">Semana actual</button>
+      <button type="button" id="print-button">Imprimir agenda</button>
+      <p id="print-help" class="print-help" role="status" hidden>
+        Google Sites puede bloquear la impresión dentro de la agenda incrustada.
+        <a id="open-standalone" target="_blank" rel="noopener">Abre la agenda en una pestaña nueva</a>
+        y pulsa imprimir allí.
+      </p>
+      <p id="storage-notice" class="storage-notice" role="status" hidden>
+        Google Sites bloquea el guardado de preferencias; se conservarán mientras esta página permanezca abierta.
+      </p>
+    </div>
+    <main id="agenda" aria-label="Agenda semanal de dos páginas"></main>
+  </div>
+
+  <script>
+    const paperSizes = {
+      A4: { pageHeight: "287mm", pageWidth: "200mm", pageRatio: "200 / 287", ratio: 200 / 287, cssSize: "A4" },
+      A5: { pageHeight: "200mm", pageWidth: "138mm", pageRatio: "138 / 200", ratio: 138 / 200, cssSize: "A5" },
+      A6: { pageHeight: "138mm", pageWidth: "95mm", pageRatio: "95 / 138", ratio: 95 / 138, cssSize: "A6" }
+    };
+    const pages = [
+      { days: ["Lunes", "Martes", "Miércoles"] },
+      { days: ["Jueves", "Viernes", "Sábado / Domingo"] }
+    ];
+    const agenda = document.querySelector("#agenda");
+    const weekPicker = document.querySelector("#week-picker");
+    const dayDisplays = new Map();
+    const defaultTitle = "Agenda-semanal";
+    const storageNotice = document.querySelector("#storage-notice");
+    const printHelp = document.querySelector("#print-help");
+    const standaloneLink = document.querySelector("#open-standalone");
+    const savedPreferences = new Map();
+
+    function readPreference(key) {
+      try {
+        return window.localStorage.getItem(key) ?? savedPreferences.get(key) ?? null;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "SecurityError") {
+          storageNotice.hidden = false;
+          return savedPreferences.get(key) ?? null;
+        }
+        throw error;
+      }
+    }
+
+    function savePreference(key, value) {
+      savedPreferences.set(key, value);
+      try {
+        window.localStorage.setItem(key, value);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "SecurityError") {
+          storageNotice.hidden = false;
+          return;
+        }
+        throw error;
+      }
+    }
+
+    const savedPaperSize = readPreference("agenda-paper-size");
+    const savedWeekDate = readPreference("agenda-week-date");
+
+    function isValidDateValue(value) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
+      if (!match) return false;
+      const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+      return date.toISOString().slice(0, 10) === value;
+    }
+
+    function getISOWeekNumber(date) {
+      const thursday = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+      thursday.setUTCDate(thursday.getUTCDate() + 3 - ((thursday.getUTCDay() + 6) % 7));
+      const firstThursday = new Date(Date.UTC(thursday.getUTCFullYear(), 0, 4));
+      firstThursday.setUTCDate(firstThursday.getUTCDate() + 3 - ((firstThursday.getUTCDay() + 6) % 7));
+      return 1 + Math.round((thursday - firstThursday) / 604800000);
+    }
+
+    function moveWeek(offset) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(weekPicker.value);
+      if (!match) throw new Error("Selecciona una fecha válida antes de cambiar de semana.");
+      const selectedDate = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+      selectedDate.setUTCDate(selectedDate.getUTCDate() + offset * 7);
+      weekPicker.value = [
+        selectedDate.getUTCFullYear(),
+        String(selectedDate.getUTCMonth() + 1).padStart(2, "0"),
+        String(selectedDate.getUTCDate()).padStart(2, "0")
+      ].join("-");
+      updateWeekDisplay();
+    }
+
+    function goToCurrentWeek() {
+      const today = new Date();
+      weekPicker.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+      updateWeekDisplay();
+    }
+
+    function makePeriodColumn(startMinutes) {
+      const period = document.createElement("div");
+      period.className = "period-column";
+      const slots = document.createElement("div");
+      slots.className = "slots";
+      for (let slot = 0; slot < 14; slot += 1) {
+        const minutes = startMinutes + slot * 30;
+        const line = document.createElement("div");
+        const timeLabel = document.createElement("span");
+        timeLabel.className = "time-label";
+        timeLabel.textContent = `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+        line.append(timeLabel);
+        slots.append(line);
+      }
+      period.append(slots);
+      return period;
+    }
+
+    function fillDayContent(content) {
+      content.append(makePeriodColumn(8 * 60), makePeriodColumn(15 * 60));
+    }
+
+    function makePanel(day) {
+      const panel = document.createElement("section");
+      panel.className = "day-panel";
+      panel.setAttribute("aria-label", day);
+
+      function makeDayHeading(dayName) {
+        const heading = document.createElement("div");
+        heading.className = "column-heading";
+        const left = document.createElement("span");
+        left.className = "day-heading-left";
+        const label = document.createElement("span");
+        label.textContent = dayName;
+        const number = document.createElement("span");
+        number.className = "day-number";
+        const month = document.createElement("span");
+        month.className = "day-month";
+        const year = document.createElement("span");
+        year.className = "day-year";
+        left.append(label, number, month, year);
+        heading.append(left);
+        dayDisplays.set(dayName, { label, number, month, year });
+        return heading;
+      }
+
+      if (day === "Sábado / Domingo") {
+        const pair = document.createElement("div");
+        pair.className = "weekend-pair";
+        for (const weekendDay of ["Sábado", "Domingo"]) {
+          const subday = document.createElement("div");
+          subday.className = "weekend-day";
+          const subheading = makeDayHeading(weekendDay);
+          const content = document.createElement("div");
+          content.className = "day-content";
+          fillDayContent(content);
+          subday.append(subheading, content);
+          pair.append(subday);
+        }
+        panel.append(pair);
+      } else {
+        const heading = makeDayHeading(day);
+        const content = document.createElement("div");
+        content.className = "day-content";
+        fillDayContent(content);
+        panel.append(heading, content);
+      }
+      return panel;
+    }
+
+    for (const [index, page] of pages.entries()) {
+      const sheet = document.createElement("section");
+      sheet.className = `sheet ${index === 0 ? "left-page" : "right-page"}`;
+      const schedule = document.createElement("div");
+      schedule.className = "schedule";
+      schedule.append(...page.days.map(makePanel));
+      sheet.append(schedule);
+      agenda.append(sheet);
+    }
+
+    const sizeSelector = document.querySelector("#paper-size");
+    const paperStyle = document.querySelector("#paper-style");
+    const controls = document.querySelector(".controls");
+    const workspace = document.querySelector(".workspace");
+    function fitPreview() {
+      if (window.matchMedia("print").matches) return;
+      const paper = paperSizes[sizeSelector.value];
+      const agendaStyle = getComputedStyle(agenda);
+      const horizontalPadding =
+        parseFloat(agendaStyle.paddingLeft) + parseFloat(agendaStyle.paddingRight);
+      const gap = parseFloat(agendaStyle.columnGap);
+      const workspaceStyle = getComputedStyle(workspace);
+      const workspacePadding =
+        parseFloat(workspaceStyle.paddingLeft) + parseFloat(workspaceStyle.paddingRight);
+      const paddingBottom = parseFloat(workspaceStyle.paddingBottom);
+      const workspaceGap = parseFloat(workspaceStyle.rowGap);
+      const availableWidth = Math.max(0,
+        workspace.clientWidth - horizontalPadding - gap - workspacePadding);
+      const availableHeight = Math.max(0,
+        window.innerHeight - controls.getBoundingClientRect().bottom - workspaceGap - paddingBottom);
+      const sheetWidth = Math.min(availableWidth / 2, availableHeight * paper.ratio);
+      document.documentElement.style.setProperty("--preview-sheet-width", `${sheetWidth}px`);
+    }
+
+    function setPaperSize(size) {
+      const paper = paperSizes[size];
+      if (!paper) throw new Error(`Formato de papel no admitido: ${size}`);
+      savePreference("agenda-paper-size", size);
+      document.documentElement.dataset.paper = size;
+      document.documentElement.style.setProperty("--sheet-height", paper.pageHeight);
+      document.documentElement.style.setProperty("--sheet-width", paper.pageWidth);
+      document.documentElement.style.setProperty("--sheet-ratio", paper.pageRatio);
+      paperStyle.textContent = `@page { size: ${paper.cssSize} portrait; margin: 5mm; }`;
+      fitPreview();
+    }
+
+    function updateWeekDisplay() {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(weekPicker.value);
+      if (!match) {
+        document.title = defaultTitle;
+        for (const [day, display] of dayDisplays) {
+          display.label.textContent = day;
+          display.number.textContent = "";
+          display.month.textContent = "";
+          display.year.textContent = "";
+        }
+        return;
+      }
+      if (!isValidDateValue(weekPicker.value)) {
+        throw new Error("La fecha seleccionada no es válida.");
+      }
+      savePreference("agenda-week-date", weekPicker.value);
+
+      const year = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const dayOfMonth = Number(match[3]);
+      const selectedDate = new Date(Date.UTC(year, month, dayOfMonth));
+      const monday = new Date(selectedDate);
+      monday.setUTCDate(selectedDate.getUTCDate() - ((selectedDate.getUTCDay() + 6) % 7));
+      const sunday = new Date(monday);
+      sunday.setUTCDate(monday.getUTCDate() + 6);
+      const monthAbbreviations = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sept", "Oct", "Nov", "Dic"];
+      const formatFilenameDate = (date) =>
+        `${date.getUTCDate()}-${monthAbbreviations[date.getUTCMonth()]}-${date.getUTCFullYear()}`;
+      document.title = `Agenda-${formatFilenameDate(monday)}-${formatFilenameDate(sunday)}-Semana-${getISOWeekNumber(monday)}`;
+      const saturday = new Date(monday);
+      saturday.setUTCDate(monday.getUTCDate() + 5);
+      const weekdayDates = [
+        ["Lunes", monday],
+        ["Martes", new Date(monday)],
+        ["Miércoles", new Date(monday)],
+        ["Jueves", new Date(monday)],
+        ["Viernes", new Date(monday)],
+        ["Sábado", saturday],
+        ["Domingo", sunday]
+      ];
+      weekdayDates[1][1].setUTCDate(monday.getUTCDate() + 1);
+      weekdayDates[2][1].setUTCDate(monday.getUTCDate() + 2);
+      weekdayDates[3][1].setUTCDate(monday.getUTCDate() + 3);
+      weekdayDates[4][1].setUTCDate(monday.getUTCDate() + 4);
+      for (const [day, date] of weekdayDates) {
+        const display = dayDisplays.get(day);
+        display.label.textContent = day;
+        display.number.textContent = String(date.getUTCDate());
+        display.month.textContent = new Intl.DateTimeFormat("es-ES", {
+          month: "long",
+          timeZone: "UTC"
+        }).format(date);
+        display.year.textContent = String(date.getUTCFullYear());
+      }
+    }
+
+    sizeSelector.addEventListener("change", () => setPaperSize(sizeSelector.value));
+    weekPicker.addEventListener("change", updateWeekDisplay);
+    document.querySelector("#previous-week").addEventListener("click", () => moveWeek(-1));
+    document.querySelector("#next-week").addEventListener("click", () => moveWeek(1));
+    document.querySelector("#current-week").addEventListener("click", goToCurrentWeek);
+    document.querySelector("#print-button").addEventListener("click", () => {
+      if (window.self !== window.top) {
+        const standaloneUrl = new URL(window.location.href);
+        if (["http:", "https:", "file:"].includes(standaloneUrl.protocol)) {
+          standaloneLink.href = standaloneUrl.href;
+          standaloneLink.hidden = false;
+          printHelp.hidden = false;
+        } else {
+          printHelp.textContent = "Google Sites bloquea la impresión dentro de la agenda incrustada. Abre la agenda en una pestaña nueva desde el menú del marco y pulsa imprimir allí.";
+          printHelp.hidden = false;
+        }
+        return;
+      }
+      window.print();
+    });
+    window.addEventListener("resize", fitPreview);
+    new ResizeObserver(fitPreview).observe(controls);
+    if (savedPaperSize && paperSizes[savedPaperSize]) {
+      sizeSelector.value = savedPaperSize;
+    }
+    const today = new Date();
+    const todayValue = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    weekPicker.value = isValidDateValue(savedWeekDate) ? savedWeekDate : todayValue;
+    updateWeekDisplay();
+    setPaperSize(sizeSelector.value);
+  </script>
+</body>
+</html>
